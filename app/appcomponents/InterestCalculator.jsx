@@ -63,7 +63,7 @@ export default function InterestCalculator() {
             <input
               type="number"
               value={principal}
-              onChange={(e) => setPrincipal(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setPrincipal(e.target.value)}
               className="border p-2 w-full rounded shadow-sm"
             />
 
@@ -72,7 +72,7 @@ export default function InterestCalculator() {
               <input
                 type="number"
                 value={rate}
-                onChange={(e) => setRate(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setRate(e.target.value)}
                 className="border p-2 w-full rounded shadow-sm"
               />
               <label className="flex items-center gap-1">
@@ -100,7 +100,7 @@ export default function InterestCalculator() {
               <input
                 type="number"
                 value={time}
-                onChange={(e) => setTime(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setTime(e.target.value)}
                 className="border p-2 w-full rounded shadow-sm"
               />
               <label className="flex items-center gap-1">
