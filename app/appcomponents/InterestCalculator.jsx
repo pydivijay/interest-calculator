@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export default function InterestCalculator() {
   const [principal, setPrincipal] = useState(100000);
@@ -54,6 +55,15 @@ export default function InterestCalculator() {
   return (
     <div className="p-6 max-w-lg mx-auto bg-gray-100 min-h-screen flex items-center justify-center">
       <Card className="p-6 shadow-xl rounded-lg bg-white">
+        <div className="flex justify-center">
+          <Image
+            src="/VijayLogo.jpg"
+            alt="Vijay Kumar Pydi Logo"
+            width={100}
+            height={100}
+            className="rounded-full"
+          />
+        </div>
         <CardContent>
           <h2 className="text-2xl font-bold text-center text-blue-600 mb-4">
             Interest Calculator
