@@ -53,7 +53,7 @@ export default function InterestCalculator() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto bg-gray-100 min-h-screen flex items-center justify-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-300 p-8">
       <Card className="p-6 shadow-xl rounded-lg bg-white">
         <div className="flex justify-center">
           <Image
