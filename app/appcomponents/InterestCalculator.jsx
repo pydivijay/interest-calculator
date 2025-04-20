@@ -21,7 +21,6 @@ export default function InterestCalculator() {
   const calculateInterest = () => {
     let rateValue = rateType === "percent" ? rate / 100 : rate;
     let timeValue = time;
-    let compoundingFrequency = 1;
 
     // Calculate time from dates if date selection is used
     if (inputMethod === "dates" && startDate && endDate) {
@@ -37,7 +36,7 @@ export default function InterestCalculator() {
       inputMethod !== "dates"
     ) {
       timeValue /= 12;
-      compoundingFrequency = 12;
+      //compoundingFrequency = 12;
     }
     if (
       timeUnit === "days" &&
@@ -45,9 +44,10 @@ export default function InterestCalculator() {
       inputMethod !== "dates"
     ) {
       timeValue /= 365;
-      compoundingFrequency = 365;
+      // compoundingFrequency = 365;
     }
 
+    // Simple Interest Logic
     let simpleInterestAmount;
     if (rateType === "percent") {
       simpleInterestAmount = principal * rateValue * timeValue;
@@ -71,22 +71,83 @@ export default function InterestCalculator() {
       simpleInterestAmount =
         (principal * rateValue * ((timeValue * 12) / 365)) / 100;
     } else if (inputMethod === "dates" && rateType === "rupees") {
-      // For date-based calculation with rupees, convert time to months
       const months = timeValue * 12;
       simpleInterestAmount = (principal * rateValue * months) / 100;
     }
-
-    let finalAmount =
-      principal *
-      Math.pow(
-        1 + rateValue / compoundingFrequency,
-        compoundingFrequency * timeValue
-      );
-    let compoundInterestAmount = finalAmount - principal;
-
     setSimpleInterest(simpleInterestAmount || 0);
-    setCompoundInterest(compoundInterestAmount || 0);
-    setTotalAmount(Number(principal) + simpleInterestAmount);
+    // Use actual time in years from number of days
+    // Get actual number of days
+    let totalDays = 0;
+
+    if (inputMethod === "dates" && startDate && endDate) {
+      totalDays = Math.floor(
+        (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)
+      );
+    } else if (timeUnit === "days") {
+      totalDays = time;
+    } else if (timeUnit === "months") {
+      totalDays = time * 30.44; // approx
+    } else if (timeUnit === "years") {
+      totalDays = time * 365;
+    }
+
+    // ... (previous code remains unchanged until the compound interest calculation)
+
+    // Approximate quarter = 91.25 days
+    const fullQuarters = Math.floor(totalDays / 91.25);
+    const remainingDays = totalDays - fullQuarters * 91.25;
+
+    let compoundFinalAmount = principal;
+
+    if (rateType === "percent") {
+      const quarterlyRate = rate / 400; // 7.1% => 7.1/400
+      // Compound for full quarters
+      compoundFinalAmount =
+        principal * Math.pow(1 + quarterlyRate, fullQuarters);
+
+      // Simple interest for remaining days
+      const simpleInterestRemaining =
+        (compoundFinalAmount * rate * remainingDays) / (365 * 100);
+
+      compoundFinalAmount += simpleInterestRemaining;
+    } else if (rateType === "rupees") {
+      // Rate is rupees per 100 per month (e.g., 2 means 2% per month)
+      const monthlyRate = rate / 100; // Convert to decimal (e.g., 2 => 0.02)
+      const quarterlyRate = monthlyRate * 3; // Quarterly rate (e.g., 0.02 * 3 = 0.06)
+
+      // Convert total time to quarters
+      let totalQuarters = 0;
+      if (inputMethod === "dates" && startDate && endDate) {
+        totalQuarters = totalDays / 91.25; // Convert days to quarters
+      } else if (timeUnit === "days") {
+        totalQuarters = time / 91.25; // Convert days to quarters
+      } else if (timeUnit === "months") {
+        totalQuarters = time / 3; // Convert months to quarters
+      } else if (timeUnit === "years") {
+        totalQuarters = time * 4; // Convert years to quarters
+      }
+
+      // Split into full quarters and remaining days
+      const fullQuarters = Math.floor(totalQuarters);
+      const remainingQuarters = totalQuarters - fullQuarters;
+      const remainingDays = remainingQuarters * 91.25; // Convert fractional quarters to days
+
+      // Compound interest for full quarters (quarterly compounding)
+      compoundFinalAmount =
+        principal * Math.pow(1 + quarterlyRate, fullQuarters);
+
+      // Simple interest for remaining days
+      const dailyRate = quarterlyRate / 91.25; // Daily rate based on quarterly rate
+      const interestRemaining = compoundFinalAmount * dailyRate * remainingDays;
+
+      compoundFinalAmount += interestRemaining;
+    }
+
+    // Final compound interest
+    const bankCompoundInterest = compoundFinalAmount - principal;
+    setCompoundInterest(bankCompoundInterest);
+
+    setTotalAmount(compoundFinalAmount || 0);
   };
 
   return (
@@ -233,12 +294,39 @@ export default function InterestCalculator() {
               Calculate Interest
             </Button>
 
-            <h3 className="text-lg font-semibold text-green-600">
-              Simple Interest: ₹{simpleInterest.toFixed(2)}
-            </h3>
-            <h3 className="text-lg font-semibold text-red-600">
-              Total Amount: ₹{totalAmount.toFixed(2)}
-            </h3>
+            <table className="min-w-full mt-4 text-sm text-left border border-gray-300 rounded-lg overflow-hidden">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  <th className="px-4 py-2 border-b">Interest Type</th>
+                  <th className="px-4 py-2 border-b">Interest Amount</th>
+                  <th className="px-4 py-2 border-b">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800">
+                <tr>
+                  <td className="px-4 py-2 border-b font-medium text-green-600">
+                    Simple Interest
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    ₹{simpleInterest.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    ₹{(Number(principal) + simpleInterest).toFixed(2)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 border-b font-medium text-purple-600">
+                    Compound Interest (Quarterly)
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    ₹{compoundInterest.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2 border-b">
+                    ₹{(Number(principal) + compoundInterest).toFixed(2)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
